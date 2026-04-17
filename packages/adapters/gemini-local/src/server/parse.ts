@@ -120,7 +120,12 @@ export function parseGeminiJsonl(stdout: string) {
       }
       continue;
     }
-
+    // Gemini CLI v0.38.1+ stream-json: assistant responses arrive as
+    // type:"message" role:"assistant" with content as a plain string.
+    if (type === "message" && asString(event.role, "").trim() === "assistant") {
+      messages.push(...collectMessageText(event.content));
+      continue;
+    }
     if (type === "result") {
       resultEvent = event;
       accumulateUsage(usage, event.usage ?? event.usageMetadata);
