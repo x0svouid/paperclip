@@ -207,7 +207,7 @@ async function listHermesModels(): Promise<{ id: string; label: string }[]> {
   const hasOpenAI = has("OPENAI_API_KEY");
   const hasOpenRouter = has("OPENROUTER_API_KEY");
   const models: { id: string; label: string }[] = [];
-  if (hasGoogle) { models.push({ id: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (Google)" }, { id: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro (Google)" }); }
+  if (hasGoogle) { models.push({ id: "gemini/gemini-2.5-flash", label: "Gemini 2.5 Flash (Google)" }, { id: "gemini/gemini-2.5-pro", label: "Gemini 2.5 Pro (Google)" }); }
   if (hasAnthropic) { models.push({ id: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4 (Anthropic)" }, { id: "anthropic/claude-opus-4", label: "Claude Opus 4 (Anthropic)" }); }
   if (hasOpenAI) { models.push({ id: "openai/gpt-4o", label: "GPT-4o (OpenAI)" }, { id: "openai/gpt-4o-mini", label: "GPT-4o Mini (OpenAI)" }); }
   if (hasOpenRouter) { models.push({ id: "openrouter/auto", label: "Auto (OpenRouter)" }); }
