@@ -7,8 +7,12 @@ import { ChoosePathButton } from "../../components/PathInstructionsModal";
 
 const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
+const selectClass =
+  "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono text-foreground";
 const instructionsFileHint =
   "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the system prompt at runtime.";
+const modelHint =
+  "Model used by this agent. Only models with a configured API key are shown. Leave empty to use the server default.";
 
 export function HermesLocalConfigFields({
   isCreate,
@@ -17,33 +21,76 @@ export function HermesLocalConfigFields({
   config,
   eff,
   mark,
+  models,
   hideInstructionsFile,
 }: AdapterConfigFieldsProps) {
-  if (hideInstructionsFile) return null;
+  const currentModel = isCreate
+    ? (values!.model ?? "")
+    : eff("adapterConfig", "model", String(config.model ?? ""));
+
   return (
-    <Field label="Agent instructions file" hint={instructionsFileHint}>
-      <div className="flex items-center gap-2">
-        <DraftInput
-          value={
-            isCreate
-              ? values!.instructionsFilePath ?? ""
-              : eff(
-                  "adapterConfig",
-                  "instructionsFilePath",
-                  String(config.instructionsFilePath ?? ""),
-                )
-          }
-          onCommit={(v) =>
-            isCreate
-              ? set!({ instructionsFilePath: v })
-              : mark("adapterConfig", "instructionsFilePath", v || undefined)
-          }
-          immediate
-          className={inputClass}
-          placeholder="/absolute/path/to/AGENTS.md"
-        />
-        <ChoosePathButton />
-      </div>
-    </Field>
+    <>
+      {!hideInstructionsFile && (
+        <Field label="Agent instructions file" hint={instructionsFileHint}>
+          <div className="flex items-center gap-2">
+            <DraftInput
+              value={
+                isCreate
+                  ? values!.instructionsFilePath ?? ""
+                  : eff(
+                      "adapterConfig",
+                      "instructionsFilePath",
+                      String(config.instructionsFilePath ?? ""),
+                    )
+              }
+              onCommit={(v) =>
+                isCreate
+                  ? set!({ instructionsFilePath: v })
+                  : mark("adapterConfig", "instructionsFilePath", v || undefined)
+              }
+              immediate
+              className={inputClass}
+              placeholder="/absolute/path/to/AGENTS.md"
+            />
+            <ChoosePathButton />
+          </div>
+        </Field>
+      )}
+      <Field label="Model" hint={modelHint}>
+        {models && models.length > 0 ? (
+          <select
+            className={selectClass}
+            value={currentModel}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (isCreate) {
+                set!({ model: v || undefined });
+              } else {
+                mark("adapterConfig", "model", v || undefined);
+              }
+            }}
+          >
+            <option value="">Default (google/gemini-2.5-flash)</option>
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <DraftInput
+            value={currentModel}
+            onCommit={(v) =>
+              isCreate
+                ? set!({ model: v || undefined })
+                : mark("adapterConfig", "model", v || undefined)
+            }
+            immediate
+            className={inputClass}
+            placeholder="google/gemini-2.5-flash (default)"
+          />
+        )}
+      </Field>
+    </>
   );
 }
