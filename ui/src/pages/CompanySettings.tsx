@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { Link } from "@/lib/router";
+import { Link, useNavigate} from "@/lib/router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DEFAULT_FEEDBACK_DATA_SHARING_TERMS_VERSION } from "@paperclipai/shared";
 import { useCompany } from "../context/CompanyContext";
@@ -201,6 +201,8 @@ export function CompanySettings() {
     setSnippetCopyDelightId(0);
   }, [selectedCompanyId]);
 
+  const navigate = useNavigate();
+
   const archiveMutation = useMutation({
     mutationFn: ({
       companyId,
@@ -220,6 +222,29 @@ export function CompanySettings() {
         queryKey: queryKeys.companies.stats
       });
     }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: ({
+      companyId,
+      nextCompanyId,
+    }: {
+      companyId: string;
+      nextCompanyId: string | null;
+    }) => companiesApi.remove(companyId).then(() => ({ nextCompanyId })),
+    onSuccess: async ({ nextCompanyId }) => {
+      if (nextCompanyId) {
+        setSelectedCompanyId(nextCompanyId);
+      } else {
+        navigate("/");
+      }
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.companies.all,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.companies.stats,
+      });
+    },
   });
 
   useEffect(() => {
@@ -611,6 +636,39 @@ export function CompanySettings() {
                 {archiveMutation.error instanceof Error
                   ? archiveMutation.error.message
                   : "Failed to archive company"}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 pt-3 border-t border-destructive/20">
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (!selectedCompanyId) return;
+                const confirmed = window.confirm(
+                  `Permanently delete "${selectedCompany.name}"? This cannot be undone.`
+                );
+                if (!confirmed) return;
+                const nextCompanyId =
+                  companies.find(
+                    (company) =>
+                      company.id !== selectedCompanyId &&
+                      company.status !== "archived"
+                  )?.id ?? null;
+                deleteMutation.mutate({
+                  companyId: selectedCompanyId,
+                  nextCompanyId,
+                });
+              }}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete permanently"}
+            </Button>
+            {deleteMutation.isError && (
+              <span className="text-xs text-destructive">
+                {deleteMutation.error instanceof Error
+                  ? deleteMutation.error.message
+                  : "Failed to delete company"}
               </span>
             )}
           </div>
