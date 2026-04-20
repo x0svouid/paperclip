@@ -200,6 +200,46 @@ const piLocalAdapter: ServerAdapterModule = {
   agentConfigurationDoc: piAgentConfigurationDoc,
 };
 
+async function listHermesModels(): Promise<{ id: string; label: string }[]> {
+  const has = (key: string) => !!process.env[key];
+  const hasGoogle = has("GOOGLE_API_KEY") || has("GEMINI_API_KEY");
+  const hasAnthropic = has("ANTHROPIC_API_KEY");
+  const hasOpenAI = has("OPENAI_API_KEY");
+  const hasOpenRouter = has("OPENROUTER_API_KEY");
+
+  const models: { id: string; label: string }[] = [];
+
+  if (hasGoogle) {
+    models.push(
+      { id: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (Google)" },
+      { id: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro (Google)" },
+      { id: "google/gemini-2.0-flash", label: "Gemini 2.0 Flash (Google)" },
+    );
+  }
+  if (hasAnthropic) {
+    models.push(
+      { id: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4 (Anthropic)" },
+      { id: "anthropic/claude-opus-4", label: "Claude Opus 4 (Anthropic)" },
+      { id: "anthropic/claude-haiku-4-5", label: "Claude Haiku 4.5 (Anthropic)" },
+    );
+  }
+  if (hasOpenAI) {
+    models.push(
+      { id: "openai/gpt-4o", label: "GPT-4o (OpenAI)" },
+      { id: "openai/gpt-4o-mini", label: "GPT-4o Mini (OpenAI)" },
+      { id: "openai/o3", label: "o3 (OpenAI)" },
+    );
+  }
+  if (hasOpenRouter) {
+    models.push(
+      { id: "openrouter/auto", label: "Auto (OpenRouter)" },
+      { id: "openrouter/google/gemini-2.5-flash", label: "Gemini 2.5 Flash via OpenRouter" },
+      { id: "openrouter/anthropic/claude-sonnet-4", label: "Claude Sonnet 4 via OpenRouter" },
+    );
+  }
+  return models;
+}
+
 const hermesLocalAdapter: ServerAdapterModule = {
   type: "hermes_local",
   execute: hermesExecute,
@@ -208,6 +248,7 @@ const hermesLocalAdapter: ServerAdapterModule = {
   listSkills: hermesListSkills,
   syncSkills: hermesSyncSkills,
   models: hermesModels,
+  listModels: listHermesModels,
   supportsLocalAgentJwt: true,
   supportsInstructionsBundle: true,
   instructionsPathKey: "instructionsFilePath",

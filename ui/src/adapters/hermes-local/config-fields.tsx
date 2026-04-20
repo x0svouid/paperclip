@@ -2,16 +2,17 @@ import type { AdapterConfigFieldsProps } from "../types";
 import {
   Field,
   DraftInput,
-  help,
 } from "../../components/agent-config-primitives";
 import { ChoosePathButton } from "../../components/PathInstructionsModal";
 
 const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
+const selectClass =
+  "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono text-foreground";
 const instructionsFileHint =
   "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the system prompt at runtime.";
 const modelHint =
-  "Model to use for this agent. Format: provider/model-name. Leave empty to use the server default (google/gemini-2.5-flash). Examples: google/gemini-2.5-pro, google/gemini-2.5-flash, anthropic/claude-sonnet-4, anthropic/claude-opus-4, openai/gpt-4o";
+  "Model used by this agent. Only models with a configured API key are shown. Leave empty to use the server default.";
 
 export function HermesLocalConfigFields({
   isCreate,
@@ -20,8 +21,13 @@ export function HermesLocalConfigFields({
   config,
   eff,
   mark,
+  models,
   hideInstructionsFile,
 }: AdapterConfigFieldsProps) {
+  const currentModel = isCreate
+    ? (values!.model ?? "")
+    : eff("adapterConfig", "model", String(config.model ?? ""));
+
   return (
     <>
       {!hideInstructionsFile && (
@@ -51,21 +57,39 @@ export function HermesLocalConfigFields({
         </Field>
       )}
       <Field label="Model" hint={modelHint}>
-        <DraftInput
-          value={
-            isCreate
-              ? values!.model ?? ""
-              : eff("adapterConfig", "model", String(config.model ?? ""))
-          }
-          onCommit={(v) =>
-            isCreate
-              ? set!({ model: v || undefined })
-              : mark("adapterConfig", "model", v || undefined)
-          }
-          immediate
-          className={inputClass}
-          placeholder="google/gemini-2.5-flash (default)"
-        />
+        {models && models.length > 0 ? (
+          <select
+            className={selectClass}
+            value={currentModel}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (isCreate) {
+                set!({ model: v || undefined });
+              } else {
+                mark("adapterConfig", "model", v || undefined);
+              }
+            }}
+          >
+            <option value="">Default (google/gemini-2.5-flash)</option>
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <DraftInput
+            value={currentModel}
+            onCommit={(v) =>
+              isCreate
+                ? set!({ model: v || undefined })
+                : mark("adapterConfig", "model", v || undefined)
+            }
+            immediate
+            className={inputClass}
+            placeholder="google/gemini-2.5-flash (default)"
+          />
+        )}
       </Field>
     </>
   );
