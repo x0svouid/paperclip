@@ -206,14 +206,13 @@ async function listHermesModels(): Promise<{ id: string; label: string }[]> {
   const hasAnthropic = has("ANTHROPIC_API_KEY");
   const hasOpenAI = has("OPENAI_API_KEY");
   const hasOpenRouter = has("OPENROUTER_API_KEY");
-
   const models: { id: string; label: string }[] = [];
 
   if (hasGoogle) {
     models.push(
-      { id: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (Google)" },
-      { id: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro (Google)" },
-      { id: "google/gemini-2.0-flash", label: "Gemini 2.0 Flash (Google)" },
+      { id: "gemini/gemini-2.5-flash", label: "Gemini 2.5 Flash (Google)" },
+      { id: "gemini/gemini-2.5-pro", label: "Gemini 2.5 Pro (Google)" },
+      { id: "gemini/gemini-2.0-flash", label: "Gemini 2.0 Flash (Google)" },
     );
   }
   if (hasAnthropic) {
