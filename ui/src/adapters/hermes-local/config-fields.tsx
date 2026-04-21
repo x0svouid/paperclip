@@ -95,7 +95,7 @@ export function HermesLocalConfigFields({
               }
             }}
           >
-            <option value="">Default (google/gemini-2.5-flash)</option>
+            <option value="">Default (gemini/gemini-2.5-flash)</option>
             {models.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.label}
@@ -112,7 +112,7 @@ export function HermesLocalConfigFields({
             }
             immediate
             className={inputClass}
-            placeholder="google/gemini-2.5-flash (default)"
+            placeholder="gemini/gemini-2.5-flash (default)"
           />
         )}
       </Field>
