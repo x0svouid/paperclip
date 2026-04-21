@@ -239,9 +239,25 @@ async function listHermesModels(): Promise<{ id: string; label: string }[]> {
   return models;
 }
 
+// Hermes' legacy session regex can capture stray words like "from" as a
+// session ID, causing the next run to fail with "Session not found: from".
+// Validate before persisting: real session IDs are 8+ chars with digits.
+const VALID_SESSION_ID = /^[a-zA-Z0-9_-]{8,}$/;
+const COMMON_WORDS = new Set(["from", "the", "this", "that", "with", "none", "null", "true", "false", "error", "failed"]);
+
+async function safeHermesExecute(ctx: Parameters<typeof hermesExecute>[0]) {
+  const result = await hermesExecute(ctx);
+  const sid = result.sessionParams?.sessionId;
+  if (sid && (!VALID_SESSION_ID.test(sid) || COMMON_WORDS.has(sid.toLowerCase()))) {
+    result.sessionParams = undefined;
+    result.sessionDisplayId = undefined;
+  }
+  return result;
+}
+
 const hermesLocalAdapter: ServerAdapterModule = {
   type: "hermes_local",
-  execute: hermesExecute,
+  execute: safeHermesExecute,
   testEnvironment: hermesTestEnvironment,
   sessionCodec: hermesSessionCodec,
   listSkills: hermesListSkills,
