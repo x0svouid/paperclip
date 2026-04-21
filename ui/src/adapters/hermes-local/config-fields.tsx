@@ -95,7 +95,7 @@ export function HermesLocalConfigFields({
               }
             }}
           >
-            <option value="">Default (gemini/gemini-2.5-flash)</option>
+            <option value="">Default (anthropic/claude-sonnet-4)</option>
             {models.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.label}
@@ -112,7 +112,7 @@ export function HermesLocalConfigFields({
             }
             immediate
             className={inputClass}
-            placeholder="gemini/gemini-2.5-flash (default)"
+            placeholder="anthropic/claude-sonnet-4 (default)"
           />
         )}
       </Field>

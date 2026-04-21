@@ -202,19 +202,12 @@ const piLocalAdapter: ServerAdapterModule = {
 
 async function listHermesModels(): Promise<{ id: string; label: string }[]> {
   const has = (key: string) => !!process.env[key];
-  const hasGoogle = has("GOOGLE_API_KEY") || has("GEMINI_API_KEY");
   const hasAnthropic = has("ANTHROPIC_API_KEY");
   const hasOpenAI = has("OPENAI_API_KEY");
   const hasOpenRouter = has("OPENROUTER_API_KEY");
   const models: { id: string; label: string }[] = [];
 
-  if (hasGoogle) {
-    models.push(
-      { id: "gemini/gemini-2.5-flash", label: "Gemini 2.5 Flash (Google)" },
-      { id: "gemini/gemini-2.5-pro", label: "Gemini 2.5 Pro (Google)" },
-      { id: "gemini/gemini-2.0-flash", label: "Gemini 2.0 Flash (Google)" },
-    );
-  }
+  // Anthropic — natively supported (anthropic Python lib)
   if (hasAnthropic) {
     models.push(
       { id: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4 (Anthropic)" },
@@ -222,6 +215,7 @@ async function listHermesModels(): Promise<{ id: string; label: string }[]> {
       { id: "anthropic/claude-haiku-4-5", label: "Claude Haiku 4.5 (Anthropic)" },
     );
   }
+  // OpenAI — natively supported (openai Python lib)
   if (hasOpenAI) {
     models.push(
       { id: "openai/gpt-4o", label: "GPT-4o (OpenAI)" },
@@ -229,11 +223,13 @@ async function listHermesModels(): Promise<{ id: string; label: string }[]> {
       { id: "openai/o3", label: "o3 (OpenAI)" },
     );
   }
+  // OpenRouter — gateway to 200+ models incl. Gemini, requires OPENROUTER_API_KEY
   if (hasOpenRouter) {
     models.push(
+      { id: "openrouter/google/gemini-2.5-flash", label: "Gemini 2.5 Flash (via OpenRouter)" },
+      { id: "openrouter/google/gemini-2.5-pro", label: "Gemini 2.5 Pro (via OpenRouter)" },
+      { id: "openrouter/anthropic/claude-sonnet-4", label: "Claude Sonnet 4 (via OpenRouter)" },
       { id: "openrouter/auto", label: "Auto (OpenRouter)" },
-      { id: "openrouter/google/gemini-2.5-flash", label: "Gemini 2.5 Flash via OpenRouter" },
-      { id: "openrouter/anthropic/claude-sonnet-4", label: "Claude Sonnet 4 via OpenRouter" },
     );
   }
   return models;
