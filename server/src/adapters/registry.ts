@@ -246,9 +246,16 @@ const VALID_SESSION_ID = /^[a-zA-Z0-9_-]{8,}$/;
 const COMMON_WORDS = new Set(["from", "the", "this", "that", "with", "none", "null", "true", "false", "error", "failed"]);
 
 async function safeHermesExecute(ctx: Parameters<typeof hermesExecute>[0]) {
+  // Sanitize incoming session: if stored session ID is corrupt (e.g. "from"),
+  // clear it so Hermes starts fresh instead of crashing with "Session not found".
+  const inSid = ctx.runtime.sessionParams?.sessionId;
+  if (typeof inSid === 'string' && (!VALID_SESSION_ID.test(inSid) || COMMON_WORDS.has(inSid.toLowerCase()))) {
+    ctx = { ...ctx, runtime: { ...ctx.runtime, sessionId: null, sessionParams: null, sessionDisplayId: null } };
+  }
   const result = await hermesExecute(ctx);
-  const sid = result.sessionParams?.sessionId;
-  if (typeof sid === 'string' && (!VALID_SESSION_ID.test(sid) || COMMON_WORDS.has(sid.toLowerCase()))) {
+  // Sanitize outgoing session: prevent storing a corrupt session ID.
+  const outSid = result.sessionParams?.sessionId;
+  if (typeof outSid === 'string' && (!VALID_SESSION_ID.test(outSid) || COMMON_WORDS.has(outSid.toLowerCase()))) {
     result.sessionParams = undefined;
     result.sessionDisplayId = undefined;
   }
