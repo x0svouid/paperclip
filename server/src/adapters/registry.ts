@@ -248,7 +248,7 @@ const COMMON_WORDS = new Set(["from", "the", "this", "that", "with", "none", "nu
 async function safeHermesExecute(ctx: Parameters<typeof hermesExecute>[0]) {
   const result = await hermesExecute(ctx);
   const sid = result.sessionParams?.sessionId;
-  if (sid && (!VALID_SESSION_ID.test(sid) || COMMON_WORDS.has(sid.toLowerCase()))) {
+  if (typeof sid === 'string' && (!VALID_SESSION_ID.test(sid) || COMMON_WORDS.has(sid.toLowerCase()))) {
     result.sessionParams = undefined;
     result.sessionDisplayId = undefined;
   }
